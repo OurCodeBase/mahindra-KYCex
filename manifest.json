@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "mahindra-KYCex",
+  "version": "1.0",
+  "description": "A tool to transport KYC data.",
+  "action": {
+    "default_popup": "index.html"
+  },
+  "permissions": [
+    "webRequest"
+  ],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "src/background.ts"
+  }
+}
