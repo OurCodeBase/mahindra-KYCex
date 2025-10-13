@@ -1,6 +1,6 @@
 const onMessage = (message: any) => {
   if (message.type == 'FIND_TOKENS') {
-    const data: { [key: string]: string } = {}
+    const data: Record<string, string> = {}
     const onBeforeSendHeaders = (details: chrome.webRequest.OnBeforeSendHeadersDetails) => {
       if (!details.requestHeaders) return details;
       for (const header of details.requestHeaders) {

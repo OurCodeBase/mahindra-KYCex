@@ -1,12 +1,15 @@
-import { useToken } from "./hooks";
-import { Await } from "./pages";
+// import { useToken } from "./hooks";
+import { Suspension, Home } from "./pages";
 
 function App() {
-  const { token } = useToken();
-  if (token == null) return <Await/>
+  // const { token } = useToken();
   return (
     <div>
-      <h1>{JSON.stringify(token)}</h1>
+      {false ? (
+        <Suspension/>
+      ) : (
+        <Home/>
+      )}
     </div>
   )
 }
