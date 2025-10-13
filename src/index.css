@@ -1,1 +1,17 @@
 @import "tailwindcss";
+
+.banner {
+  background-image: url('/banner.jpg');
+  background-size: cover; /* Stretches the image to cover the entire element */
+  background-position: center center; /* Centers the image */
+  background-repeat: no-repeat; /* Prevents image from repeating */
+}
+
+table tr td:first-child {
+  text-align: left;
+  padding-right: 8px;
+}
+
+table tr td:first-child:after {
+  content: ":";
+}
