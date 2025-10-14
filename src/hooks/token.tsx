@@ -8,7 +8,7 @@ type Token = {
 
 type TokenHook = {
   token: Token | null;
-  setToken: (token: Token) => void;
+  setToken: (token: Token | null) => void;
 }
 
 export default function App(): TokenHook {

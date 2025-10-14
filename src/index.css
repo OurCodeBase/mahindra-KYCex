@@ -10,6 +10,7 @@
 table tr td:first-child {
   text-align: left;
   padding-right: 8px;
+  text-transform: capitalize;
 }
 
 table tr td:first-child:after {

@@ -2,7 +2,13 @@
   "manifest_version": 3,
   "name": "mahindra-KYCex",
   "version": "1.0",
-  "description": "A tool to transport KYC data.",
+  "description": "A chromium extension for mahindra KYC automation.",
+  "icons": {
+    "16": "icon.png",
+    "32": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
+  },
   "action": {
     "default_popup": "index.html"
   },
