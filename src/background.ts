@@ -16,7 +16,7 @@ const onMessage = (message: any) => {
     }
     chrome.webRequest.onBeforeSendHeaders.addListener(
       onBeforeSendHeaders,
-      { urls: ["http://localhost:5000/api/*"] },
+      { urls: ["http://localhost:5000/api/*", "https://api.mahindradealerrise.com/otf/vehicleinvoice/*"] },
       ["requestHeaders"]
     );
   }
