@@ -20,10 +20,8 @@
   ],
   "host_permissions": [
     "*://localhost:*/*",
-    "https://www.mahindradealerrise.com/*",
-    "https://api.mahindradealerrise.com/*",
-    "https://oempp.mahindramobilitysolution.com/*",
-    "https://oempp-cv.mahindramobilitysolution.com/*"
+    "*://*.mahindradealerrise.com/*",
+    "*://*.mahindramobilitysolution.com/*"
   ],
   "background": {
     "service_worker": "src/background.ts"
