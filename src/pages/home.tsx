@@ -4,99 +4,96 @@ import { useEffect, useState } from "react";
 import { extractAddress } from "../google-genai";
 import { Info, Loader, Search } from "lucide-react";
 
-type Invoice = {
-  invoice: string,
+type Vehicle = {
   model: string,
-  phoneno: string,
-  vinno: string,
+  invoice: string,
   name: string,
-  email: string,
+  streetName: string,
   addressLine1: string,
   addressLine2: string,
-  streetName: string,
   district: string,
   state: string,
   pincode: string,
+  phoneno: string,
+  email: string,
+  vinno: string,
 }
-type ButtonType = 'SHALLOW' | 'FULL'
-type ActionsProps = { details: Invoice, setDetails: (details: Invoice | undefined ) => void }
-type ActionBtn = { title: string, color: string, onClick: () => void }
 
-function Actions({ details, setDetails }: ActionsProps ) {
-  const handleShallowForm = (details: Invoice) => {
-    const phoneBox = document.querySelector<HTMLInputElement>("#wyhMobile")
-    const vinBox = document.querySelector<HTMLInputElement>("#vinNumber")
-    const radioBtn = document.querySelector<HTMLInputElement>("#polygon")
-    const _verifyBtn = "#newDistribution > div.form-row > div > button:nth-child(1)"
-    const verifyBtn = document.querySelector<HTMLButtonElement>(_verifyBtn);
-    if (phoneBox && vinBox && radioBtn && verifyBtn) {
-      phoneBox.value = details["phoneno"];
-      phoneBox.dispatchEvent(new Event('change', { bubbles: true }));
-      vinBox.value = details["vinno"];
-      vinBox.dispatchEvent(new Event('change', { bubbles: true }));
-      radioBtn.click();
-      verifyBtn.scrollIntoView();
-      verifyBtn.click();
+type ActionType = 'shallow' | 'deep';
+type ActionsProps = { vehicle: Vehicle, setVehicle: (vehicle: Vehicle | undefined ) => void }
+
+function handleShallowForm(vehicle: Vehicle) {
+  const fields: Array<{ loc: string, key?: keyof Vehicle }> = [
+    { loc: "#wyhMobile", key: "phoneno" },
+    { loc: "#vinNumber", key: "vinno" },
+    { loc: "#polygon" },
+    { loc: "#newDistribution > div.form-row > div > button:nth-child(1)" },
+  ]
+  fields.forEach(({ loc, key }) => {
+    const element = document.querySelector<HTMLInputElement | HTMLButtonElement>(loc);
+    if (element == null) return;
+    if (key) {
+      element.value = vehicle[key];
+      element.dispatchEvent(new Event('change', { bubbles: true }));
+    } else {
+      element.click();
     }
-  }
-  const handleFullForm = (details: Invoice) => {
-    const phoneBox = document.querySelector<HTMLInputElement>("#Prefered\\ Mobile\\ Number");
-    const addressLine1 = document.querySelector<HTMLInputElement>("#address1");
-    const addressLine2 = document.querySelector<HTMLInputElement>("#Address\\ Line\\ 2");
-    const streetName = document.querySelector<HTMLInputElement>("#Street\\ Name");
-    const districtBox = document.querySelector<HTMLInputElement>("#District");
-    const stateBox = document.querySelector<HTMLSelectElement>("#stateAdd");
-    const pincodeBox = document.querySelector<HTMLInputElement>("#Pincode");
-    if (phoneBox && addressLine1 && addressLine2 && streetName && districtBox && stateBox && pincodeBox) {
-      phoneBox.value = details["phoneno"];
-      phoneBox.dispatchEvent(new Event('change', { bubbles: true }));
-      addressLine1.value = details["addressLine1"];
-      addressLine1.dispatchEvent(new Event('change', { bubbles: true }));
-      addressLine2.value = details["addressLine2"];
-      addressLine2.dispatchEvent(new Event('change', { bubbles: true }));
-      streetName.value = details["streetName"];
-      streetName.dispatchEvent(new Event('change', { bubbles: true }));
-      districtBox.value = details["district"];
-      districtBox.dispatchEvent(new Event('change', { bubbles: true }));
-      stateBox.value = details["state"];
-      stateBox.dispatchEvent(new Event('change', { bubbles: true }));
-      pincodeBox.value = details["pincode"];
-      pincodeBox.dispatchEvent(new Event('change', { bubbles: true }));
-    }
-  }
-  const onClickBtn = async (type: ButtonType) => {
+  })
+}
+
+function handleDeepForm(vehicle: Vehicle) {
+  const fields: Array<{ loc: string, key: keyof Vehicle }> = [
+    { loc: "#Prefered\\ Mobile\\ Number", key: "phoneno" },
+    { loc: "#address1", key: "addressLine1" },
+    { loc: "#Address\\ Line\\ 1", key: "addressLine1" },
+    { loc: "#Address\\ Line\\ 2", key: "addressLine2" },
+    { loc: "#Street\\ Name", key: "streetName" },
+    { loc: "#District", key: "district" },
+    { loc: "#stateAdd", key: "state" },
+    { loc: "#Pincode", key: "pincode" },
+  ]
+  fields.forEach(({ loc, key }) => {
+    const element = document.querySelector<HTMLInputElement | HTMLSelectElement>(loc);
+    if (element == null) return;
+    element.value = vehicle[key];
+    element.dispatchEvent(new Event('change', { bubbles: true }));
+  })
+}
+
+function Actions({ vehicle, setVehicle }: ActionsProps ) {
+  const onCallback = async (type: ActionType) => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
     if (tab.id) {
       await chrome.scripting.executeScript({
         target: { tabId: tab.id },
-        func: type == "SHALLOW" ? handleShallowForm : handleFullForm,
-        args: [details]
+        func: type == "shallow" ? handleShallowForm : handleDeepForm,
+        args: [vehicle]
       })
     }
   }
-  const actionBtns: Array<ActionBtn> = [
+  const actionBtns: Array<{ title: string, color: string, callback: () => void }> = [
     {
       title: "FORM 1",
       color: "bg-rose-500",
-      onClick: () => {onClickBtn('SHALLOW')}
+      callback: () => {onCallback('shallow')}
     },
     {
       title: "FORM 2",
       color: "bg-emerald-500",
-      onClick: () => {onClickBtn('SHALLOW')}
+      callback: () => {onCallback('deep')}
     },
     {
       title: "CLEAR",
       color: "bg-slate-500",
-      onClick: () => {
+      callback: () => {
         chrome.storage.session.remove("shadow-invoice");
-        setDetails(undefined);
+        setVehicle(undefined);
       }
     },
   ]
   return (
     <div className="w-full flex justify-center mt-2">
-      {actionBtns.map(option => <button onClick={option.onClick} key={option.title}
+      {actionBtns.map(option => <button onClick={option.callback} key={option.title}
         className={`py-2 shadow-lg ${option.color} opacity-70 cursor-pointer text-green-100 font-mono mr-2 px-2 h-min text-nowrap`}>
         {option.title}
       </button>)}
@@ -108,70 +105,73 @@ export default function App() {
   const { token, setToken } = useToken()
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
-  const [details, setDetails] = useState<Invoice | undefined>()
+  const [vehicle, setVehicle] = useState<Vehicle | undefined>()
   const [exception, setException] = useState<string | undefined>()
   const connectToBackend = async () => {
-    if (!token) return null;
+    try {
+    if (!token) return;
     // Get list of invoices.
-    const listRequest = await fetch(`https://api.mahindradealerrise.com/otf/vehicleinvoice/search?searchType=invoiceNumber&searchParam=${search}&pageNumber=1&pageSize=10&invoiceStatus=I&sortBy=modelDescription&sortIn=DESC`, {
-      "headers": {
-        "accept": "application/json, text/plain, */*",
-        "accesstoken": token.accesstoken,
-        "authorization": token.authorization,
-        "userid": token.userid
+    const searchRequest = await fetch(`https://api.mahindradealerrise.com/otf/vehicleinvoice/search?searchType=invoiceNumber&searchParam=${search}&pageNumber=1&pageSize=10&invoiceStatus=I&sortBy=modelDescription&sortIn=DESC`, {
+      headers: {
+        accept: "application/json, text/plain, */*",
+        ...token,
       }
     })
     // Check for unauthorization.
-    if (listRequest.status == 401) {
+    if (searchRequest.status == 401) {
       setToken(null);
+      setLoading(false);
       return;
     }
-    const listResponse = await listRequest.json()
-    if (!listRequest.ok) {
+    const searchResponse = await searchRequest.json()
+    if (!searchRequest.ok) {
       const exception = {
         invoice: search,
         tokens: token,
-        response: listResponse
+        response: searchResponse
       }
       setException(JSON.stringify(exception))
       return;
     }
     // Get full data of the invoice.
-    const firstInvoice = listResponse["data"]["paginationData"][0]
+    const firstInvoice = searchResponse["data"]["paginationData"][0]
     const { id: invoiceId, otfNumber } = firstInvoice
     const request = await fetch(`https://api.mahindradealerrise.com/otf/vehicleinvoice/details?invoiceId=${invoiceId}&otfNumber=${otfNumber}`, {
-      "headers": {
-        "accept": "application/json, text/plain, */*",
-        "accesstoken": token.accesstoken,
-        "authorization": token.authorization,
-        "userid": token.userid
+      headers: {
+        accept: "application/json, text/plain, */*",
+        ...token,
       }
     })
     const response = await request.json()
     const cupcakes = response["data"]["invoiceDetails"]["bookingAndBillingCustomerDto"]["bookingCustomer"]
     const vanilla = response["data"]["vehicleDetails"]
     const unstructuredAddress = cupcakes["address1"]
-    const chocolate: Invoice = {
-      invoice: response["data"]["invoiceDetails"]["invoiceNumber"],
+    const chocolate: Vehicle = {
       model: vanilla["model"],
-      phoneno: cupcakes["mobileNumber"],
-      vinno: vanilla["vinNumber"],
+      invoice: response["data"]["invoiceDetails"]["invoiceNumber"],
       name: cupcakes["customerName"],
-      email: cupcakes["email"],
+      streetName: "",
       addressLine1: "",
       addressLine2: "",
-      streetName: "",
       district: cupcakes["district"],
       state: cupcakes["state"],
       pincode: cupcakes["pincode"],
+      phoneno: cupcakes["mobileNumber"],
+      email: cupcakes["email"],
+      vinno: vanilla["vinNumber"],
     }
     const address = await extractAddress(unstructuredAddress);
     chocolate.streetName = address.streetName
     chocolate.addressLine1 = address.addressLine1
     chocolate.addressLine2 = address.addressLine2
     chrome.storage.session.set({ "shadow-invoice": JSON.stringify(chocolate) })
-    setDetails(chocolate)
+    setVehicle(chocolate)
+    } catch (e) {
+    console.log(e);
+    setException("Something went wrong...");
+    } finally {
     setLoading(false);
+    }
   }
   const handleSearch = (e: React.FormEvent): void => {
     e.preventDefault();
@@ -182,13 +182,13 @@ export default function App() {
   }
   useEffect(() => {
     chrome.storage.session.get("shadow-invoice").then((response) => {
-      if (response && response["shadow-invoice"]) setDetails(JSON.parse(response["shadow-invoice"]))
+      if (response && response["shadow-invoice"]) setVehicle(JSON.parse(response["shadow-invoice"]))
     })
   }, [])
   return (
     <div className="shadow-xl p-4 max-w-md">
       <Logo/>
-      <form onSubmit={handleSearch} className={`flex flex-row w-full justify-center ${details || "pb-28"}`}>
+      <form onSubmit={handleSearch} className={`flex flex-row w-full justify-center ${vehicle || "pb-28"}`}>
         <input
           type="text"
           value={search}
@@ -204,13 +204,11 @@ export default function App() {
           {loading ? <Loader className="animate-spin"/> : <Search/>}
         </button>
       </form>
-      {details && <div className="mt-2">
+      {vehicle && <div className="mt-2">
         <div className="backdrop-brightness-60 backdrop-contrast-125 font-mono border-1 border-stone-400 rounded-md p-2">
-          <p className="font-bold text-lime-50">{details["invoice"]}</p>
-          <hr className="text-stone-400 mb-1"/>
           <table className="text-lime-50">
             <tbody>
-              {(Object.entries(details) as [keyof Invoice, Invoice[keyof Invoice]][]).map(
+              {(Object.entries(vehicle) as [keyof Vehicle, Vehicle[keyof Vehicle]][]).map(
                 ([key, value]) => {
                   return <tr key={key}>
                     <td>{key}</td>
@@ -221,7 +219,7 @@ export default function App() {
             </tbody>
           </table>
         </div>
-        <Actions details={details} setDetails={setDetails}/>
+        <Actions vehicle={vehicle} setVehicle={setVehicle}/>
       </div>}
       {exception && <div className="text-sm font-mono mt-3 p-3 flex flex-row text-red-500 font-bold bg-red-100 border-1 rounded-md">
         <Info className="mr-1 size-4"/>

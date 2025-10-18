@@ -1,18 +1,16 @@
 const onMessage = (message: any) => {
   if (message.type == 'FIND_TOKENS') {
-    console.log("Listened a web request for tokens...");
     const data: Record<string, string> = {}
     const onBeforeSendHeaders = (details: chrome.webRequest.OnBeforeSendHeadersDetails) => {
-      console.log("Found a web request at url:", details.url);
       if (!details.requestHeaders) return details;
       for (const header of details.requestHeaders) {
-        if (['userid', 'accesstoken', 'authorization'].includes(header.name)) {
-          data[header.name] = header.value || "";
+        const name = header.name.toLowerCase();
+        if (['userid', 'accesstoken', 'authorization'].includes(name)) {
+          data[name] = header.value || "";
         }
       }
       chrome.webRequest.onBeforeSendHeaders.removeListener(onBeforeSendHeaders);
       if (Object.keys(data).length == 3) {
-        console.log("Saved tokens in session storage:", data);
         chrome.storage.session.set({ "robin-authtokens": JSON.stringify(data) })
       }
       return details;
