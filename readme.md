@@ -2,9 +2,9 @@
 
 > A chromium extension that automates KYC verification for mahindra adrenox and imaxx through invoices using AI-powered data extraction.
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
-![Chrome](https://img.shields.io/badge/chrome-extension-orange.svg)
+![Version](https://img.shields.io/badge/version-1.0.1-blue.svg)
+![License](https://img.shields.io/badge/license-LGPL-green.svg)
+![Chrome](https://img.shields.io/badge/chromium-extension-orange.svg)
 
 ## 📋 Overview
 

@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "mahindra-KYCex",
-  "version": "1.0",
-  "description": "A chromium extension for mahindra KYC automation.",
+  "name": "mahindra-orchid",
+  "version": "1.1",
+  "description": "AI POWERED chromium extension for mahindra KYC automation.",
   "icons": {
     "16": "icon.png",
     "32": "icon.png",
