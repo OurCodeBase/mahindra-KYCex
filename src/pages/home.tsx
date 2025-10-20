@@ -102,7 +102,7 @@ function Actions({ vehicle, setVehicle }: ActionsProps ) {
 }
 
 export default function App() {
-  const { token, setToken } = useToken()
+  const { token, removeToken } = useToken()
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [vehicle, setVehicle] = useState<Vehicle | undefined>()
@@ -119,7 +119,7 @@ export default function App() {
     })
     // Check for unauthorization.
     if (searchRequest.status == 401) {
-      setToken(null);
+      removeToken();
       setLoading(false);
       return;
     }
@@ -145,7 +145,7 @@ export default function App() {
     const response = await request.json()
     const cupcakes = response["data"]["invoiceDetails"]["bookingAndBillingCustomerDto"]["bookingCustomer"]
     const vanilla = response["data"]["vehicleDetails"]
-    const unstructuredAddress = cupcakes["address1"]
+    const unstructuredAddress = cupcakes["address1"] + cupcakes["address2"] + cupcakes["address3"]
     const chocolate: Vehicle = {
       model: vanilla["model"],
       invoice: response["data"]["invoiceDetails"]["invoiceNumber"],

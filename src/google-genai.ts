@@ -5,31 +5,34 @@ const genAI = new GoogleGenAI({
 })
 
 const prompt = `
-Your task is to extract structured address components from unformatted Indian addresses and output them as a valid JSON object with the following properties:
+You are an intelligent data parser. Your task is to extract structured address components from unstructured text.
 
+Extract and return the data in the following JSON structure:
 {
-  "streetName": string,       // S/O (son of)
-  "addressLine1": string,     // Half of remaining address.
-  "addressLine2": string      // Remainging half part of address.
+  "streetName": "",
+  "addressLine1": "",
+  "addressLine2": ""
 }
 
-Instructions:
-- Always return valid JSON only, without explanations.
-- If a field is missing in the input, leave it as an empty string ("").
-- Avoid adding extra keys.
-- Don't remove any words like P/O or S/O.
+### Rules:
+1. "streetName" -> Extract parts starting with or containing words like "S/O", "D/O", "W/O", or "C/O" (e.g., "S/O RAHUL KUMAR").
+2. "addressLine1" -> Extract parts starting with or containing "VILL", "VILLAGE", "HOUSE NO", "H.NO", "HO", "R/O", or "MOHALLA".
+3. "addressLine2" -> Extract parts containing "NEAR", "ROAD", "POST", "BEHIND", or any remaining location descriptors like city, town, or landmark names.
+4. Maintain original casing and punctuation.
+5. If there is no addressLine1 then put addressLine2 in addressLine1.
+6. Return **only** the JSON structure - no explanations, comments, or extra text.
 
-Example Input:
-"S/O NARESH R/O RAMNAGAR NEAR GOVARDHAN PO-NAGPUR JAMNAGAR"
+### Example Input:
+S/O RAHUL KUMAR HOUSE NO-483, MOHALLA-MAKABRA NEAR CHATRI WALA KUAN NAJIBABAD BIJNOR
 
-Example Output:
+### Example Output:
 {
-  "streetName": "S/O NARESH",
-  "addressLine1": "R/O RAMNAGAR NEAR GOVARDHAN",
-  "addressLine2": "PO-NAGPUR JAMNAGAR"
+  "streetName": "S/O RAHUL KUMAR",
+  "addressLine1": "HOUSE NO-483,  MOHALLA-MAKABRA",
+  "addressLine2": "NEAR CHATRI WALA KUAN NAJIBABAD BIJNOR"
 }
 
-Now convert the following address into JSON:
+Now, parse the following input accordingly:
 `;
 
 type StructuredAddress = {

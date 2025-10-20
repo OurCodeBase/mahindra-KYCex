@@ -8,7 +8,7 @@ type Token = {
 
 type TokenHook = {
   token: Token | null;
-  setToken: (token: Token | null) => void;
+  removeToken: () => void;
 }
 
 export default function App(): TokenHook {
@@ -24,5 +24,9 @@ export default function App(): TokenHook {
       }
     })
   }, [token])
-  return { token, setToken };
+  const removeToken = () => {
+    chrome.storage.session.remove("robin-authtokens");
+    setToken(null);
+  }
+  return { token, removeToken };
 };
