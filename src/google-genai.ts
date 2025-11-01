@@ -35,25 +35,18 @@ S/O RAHUL KUMAR HOUSE NO-483, MOHALLA-MAKABRA NEAR CHATRI WALA KUAN NAJIBABAD BI
 Now, parse the following input accordingly:
 `;
 
-type StructuredAddress = {
+type Address = {
   streetName: string,
   addressLine1: string,
   addressLine2: string
 }
 
-export async function extractAddress(address: string): Promise<StructuredAddress> {
+export async function extractAddress(address: string): Promise<Address> {
   const response = await genAI.models.generateContent({
     model: "gemini-2.5-flash",
     contents: prompt + address
   })
-  if (!response.text) {
-    return {
-      streetName: "",
-      addressLine1: "",
-      addressLine2: ""
-    }
-  }
-  const cleanedResponse = response.text.replace(/```json|```/g, '').trim();
-  const structuredAddress = JSON.parse(cleanedResponse);
-  return structuredAddress;
+  if (!response.text) throw new Error("There's no response from gemini!");
+  const body = response.text.replace(/```json|```/g, '').trim();
+  return JSON.parse(body);
 }

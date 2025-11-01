@@ -45,7 +45,7 @@ export default function App({ children }: {children: ReactNode}) {
       </div>
       {(rounds > 0) && <div className="text-sm font-mono mt-3 p-3 flex flex-row text-red-500 font-bold bg-red-100 border-1">
         <Info className="mr-1 size-4"/>
-        You have been tried {(rounds == 3) && "all"} {rounds} attempts to enter OTP!
+        You've lost {(rounds == 3) && "all"} {rounds} chance to login!
       </div>}
     </div>
   )

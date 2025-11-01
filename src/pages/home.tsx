@@ -71,17 +71,9 @@ function Actions({ vehicle, setVehicle }: ActionsProps ) {
       })
     }
   }
-  const actionBtns: Array<{ title: string, color: string, callback: () => void }> = [
-    {
-      title: "FORM 1",
-      color: "bg-rose-500",
-      callback: () => {onCallback('shallow')}
-    },
-    {
-      title: "FORM 2",
-      color: "bg-emerald-500",
-      callback: () => {onCallback('deep')}
-    },
+  const actions: Array<{ title: string, color: string, callback: () => void }> = [
+    { title: "FORM 1", color: "bg-rose-500", callback: () => {onCallback('shallow')} },
+    { title: "FORM 2", color: "bg-emerald-500", callback: () => {onCallback('deep')} },
     {
       title: "CLEAR",
       color: "bg-slate-500",
@@ -93,7 +85,7 @@ function Actions({ vehicle, setVehicle }: ActionsProps ) {
   ]
   return (
     <div className="w-full flex justify-center mt-2">
-      {actionBtns.map(option => <button onClick={option.callback} key={option.title}
+      {actions.map(option => <button onClick={option.callback} key={option.title}
         className={`py-2 shadow-lg ${option.color} opacity-70 cursor-pointer text-green-100 font-mono mr-2 px-2 h-min text-nowrap`}>
         {option.title}
       </button>)}
@@ -109,68 +101,57 @@ export default function App() {
   const [exception, setException] = useState<string | undefined>()
   const connectToBackend = async () => {
     try {
-    if (!token) return;
-    // Get list of invoices.
-    const searchRequest = await fetch(`https://api.mahindradealerrise.com/otf/vehicleinvoice/search?searchType=invoiceNumber&searchParam=${search}&pageNumber=1&pageSize=10&invoiceStatus=I&sortBy=modelDescription&sortIn=DESC`, {
-      headers: {
-        accept: "application/json, text/plain, */*",
-        ...token,
+      if (token == null) throw new Error("You don't have a session id!")
+      // Get bundle of invoices.
+      const requestOtf = await fetch("https://api.mahindradealerrise.com/otf/vehicleinvoice/search?searchType=invoiceNumber&searchParam=" + search + "&pageNumber=1&pageSize=10&invoiceStatus=I&sortBy=modelDescription&sortIn=DESC", {
+        headers: {
+          accept: "application/json, text/plain, */*",
+          ...token,
+        }
+      })
+      if (requestOtf.status == 401) {
+        removeToken();
+        throw new Error("Your robin session has been expired!");
       }
-    })
-    // Check for unauthorization.
-    if (searchRequest.status == 401) {
-      removeToken();
-      setLoading(false);
-      return;
-    }
-    const searchResponse = await searchRequest.json()
-    if (!searchRequest.ok) {
-      const exception = {
-        invoice: search,
-        tokens: token,
-        response: searchResponse
+      const responseOtf = await requestOtf.json()
+      const firstInvoice = responseOtf["data"]["paginationData"][0]
+      const { id: invoiceId, otfNumber } = firstInvoice;
+      // Get full data of the invoice.
+      const request = await fetch(`https://api.mahindradealerrise.com/otf/vehicleinvoice/details?invoiceId=${invoiceId}&otfNumber=${otfNumber}`, {
+        headers: {
+          accept: "application/json, text/plain, */*",
+          ...token,
+        }
+      })
+      const response = await request.json()
+      const customerInfo = response["data"]["invoiceDetails"]["bookingAndBillingCustomerDto"]["bookingCustomer"]
+      const vehicleInfo = response["data"]["vehicleDetails"]
+      const rawAddress = customerInfo["address1"] + customerInfo["address2"] + customerInfo["address3"]
+      const fields: Vehicle = {
+        model: vehicleInfo["model"],
+        invoice: response["data"]["invoiceDetails"]["invoiceNumber"],
+        name: customerInfo["customerName"],
+        streetName: "",
+        addressLine1: "",
+        addressLine2: "",
+        district: customerInfo["district"],
+        state: customerInfo["state"],
+        pincode: customerInfo["pincode"],
+        phoneno: customerInfo["mobileNumber"],
+        email: customerInfo["email"],
+        vinno: vehicleInfo["vinNumber"],
       }
-      setException(JSON.stringify(exception))
-      return;
-    }
-    // Get full data of the invoice.
-    const firstInvoice = searchResponse["data"]["paginationData"][0]
-    const { id: invoiceId, otfNumber } = firstInvoice
-    const request = await fetch(`https://api.mahindradealerrise.com/otf/vehicleinvoice/details?invoiceId=${invoiceId}&otfNumber=${otfNumber}`, {
-      headers: {
-        accept: "application/json, text/plain, */*",
-        ...token,
-      }
-    })
-    const response = await request.json()
-    const cupcakes = response["data"]["invoiceDetails"]["bookingAndBillingCustomerDto"]["bookingCustomer"]
-    const vanilla = response["data"]["vehicleDetails"]
-    const unstructuredAddress = cupcakes["address1"] + cupcakes["address2"] + cupcakes["address3"]
-    const chocolate: Vehicle = {
-      model: vanilla["model"],
-      invoice: response["data"]["invoiceDetails"]["invoiceNumber"],
-      name: cupcakes["customerName"],
-      streetName: "",
-      addressLine1: "",
-      addressLine2: "",
-      district: cupcakes["district"],
-      state: cupcakes["state"],
-      pincode: cupcakes["pincode"],
-      phoneno: cupcakes["mobileNumber"],
-      email: cupcakes["email"],
-      vinno: vanilla["vinNumber"],
-    }
-    const address = await extractAddress(unstructuredAddress);
-    chocolate.streetName = address.streetName
-    chocolate.addressLine1 = address.addressLine1
-    chocolate.addressLine2 = address.addressLine2
-    chrome.storage.session.set({ "shadow-invoice": JSON.stringify(chocolate) })
-    setVehicle(chocolate)
+      const address = await extractAddress(rawAddress);
+      fields.streetName = address.streetName
+      fields.addressLine1 = address.addressLine1
+      fields.addressLine2 = address.addressLine2
+      chrome.storage.session.set({ "shadow-invoice": JSON.stringify(fields) })
+      setVehicle(fields)
     } catch (e) {
-    console.log(e);
-    setException("Something went wrong...");
+      console.log(e);
+      if (e instanceof Error) setException(e.message);
     } finally {
-    setLoading(false);
+      setLoading(false);
     }
   }
   const handleSearch = (e: React.FormEvent): void => {
