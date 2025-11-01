@@ -43,7 +43,7 @@ export default function App({ children }: {children: ReactNode}) {
           className="px-4 bg-green-50 text-green-600 placeholder-stone-400 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all cursor-pointer"
         />
       </div>
-      {(rounds > 0) && <div className="text-sm font-mono mt-3 p-3 flex flex-row text-red-500 font-bold bg-red-100 border-1">
+      {(rounds > 0) && <div className="text-sm mt-3 p-3 flex flex-row text-red-500 font-bold bg-red-100 border-1">
         <Info className="mr-1 size-4"/>
         You've lost {(rounds == 3) && "all"} {rounds} chance to login!
       </div>}

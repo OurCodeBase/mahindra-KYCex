@@ -202,7 +202,7 @@ export default function App() {
         </div>
         <Actions vehicle={vehicle} setVehicle={setVehicle}/>
       </div>}
-      {exception && <div className="text-sm font-mono mt-3 p-3 flex flex-row text-red-500 font-bold bg-red-100 border-1 rounded-md">
+      {exception && <div className="text-sm mt-3 p-3 flex flex-row text-red-500 font-bold bg-red-100 border-1 rounded-md">
         <Info className="mr-1 size-4"/>
         {exception}
       </div>}
