@@ -1,0 +1,51 @@
+name: Release Builds
+on:
+  push:
+    tags:
+      - 'v*'
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 'latest'
+      - name: Install dependencies and build release.
+        env:
+          VITE_LICENSE_KEY: ${{ secrets.LICENSE_KEY }}
+          VITE_GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        run: |
+          npm install
+          npm run build
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Build ${{ github.ref_name }}
+          body: 'Take this release, extract and use it in chromium based browser as developer.'
+          draft: false
+          prerelease: false
+      - name: Extract extension name.
+        id: exponame
+        run: |
+          REPO_LONG="${{ github.repository }}"
+          REPO_BASE=$(basename $REPO_LONG)
+          REPO_SHORT=${REPO_BASE#*-}
+          echo "extension_name=$REPO_SHORT" >> $GITHUB_OUTPUT
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release/release.zip
+          asset_name: ${{ steps.exponame.outputs.extension_name }}-${{ github.ref_name }}.zip
+          asset_content_type: application/zip
