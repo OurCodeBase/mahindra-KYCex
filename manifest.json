@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "mahindra-orchid",
-  "version": "1.3",
+  "version": "1.4",
   "description": "AI POWERED chromium extension for mahindra KYC automation.",
   "icons": {
     "16": "icon.png",
@@ -20,7 +20,7 @@
   ],
   "host_permissions": [
     "*://localhost:*/*",
-    "*://mahindr.static.domains/*",
+    "*://mahindr.appwrite.network/*",
     "*://*.mahindradealerrise.com/*",
     "*://*.mahindramobilitysolution.com/*"
   ],
