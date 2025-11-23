@@ -1,3 +1,4 @@
+import path from 'path'
 import { defineConfig } from 'vite'
 import manifest from './manifest.config'
 import { crx } from '@crxjs/vite-plugin'
@@ -13,4 +14,9 @@ export default defineConfig({
     crx({ manifest }),
     zip({ outDir: 'release', outFileName: 'release.zip' })
   ],
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src")
+    }
+  }
 })

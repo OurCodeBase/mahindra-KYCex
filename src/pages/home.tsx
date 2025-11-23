@@ -1,87 +1,34 @@
-import { useToken } from "../hooks";
-import { Logo } from "../components";
+import { useToken } from "@/hooks";
+import { Logo } from "@/components";
 import { useEffect, useState } from "react";
-import { extractAddress } from "../google-genai";
-import { Info, Loader, Search } from "lucide-react";
+import { Loader, Search } from "lucide-react";
+import { Searchconsole } from "@/utils/search";
+import { fillFirstform, fillSecondform } from '@/utils/actions';
 
-type Vehicle = {
-  model: string,
-  invoice: string,
-  name: string,
-  streetName: string,
-  addressLine1: string,
-  addressLine2: string,
-  district: string,
-  state: string,
-  pincode: string,
-  phoneno: string,
-  email: string,
-  vinno: string,
-}
+import type { Vehicle } from '@/types';
 
-type ActionType = 'shallow' | 'deep';
 type ActionsProps = { vehicle: Vehicle, setVehicle: (vehicle: Vehicle | undefined ) => void }
 
-function handleShallowForm(vehicle: Vehicle) {
-  const fields: Array<{ loc: string, key?: keyof Vehicle }> = [
-    { loc: "#wyhMobile", key: "phoneno" },
-    { loc: "#vinNumber", key: "vinno" },
-    { loc: "#polygon" },
-    { loc: "#newDistribution > div.form-row > div > button:nth-child(1)" },
-  ]
-  fields.forEach(({ loc, key }) => {
-    const element = document.querySelector<HTMLInputElement | HTMLButtonElement>(loc);
-    if (element == null) return;
-    if (key) {
-      element.value = vehicle[key];
-      element.dispatchEvent(new Event('change', { bubbles: true }));
-    } else {
-      element.click();
-    }
-  })
-}
-
-function handleDeepForm(vehicle: Vehicle) {
-  const fields: Array<{ loc: string, key: keyof Vehicle }> = [
-    { loc: "#Prefered\\ Mobile\\ Number", key: "phoneno" },
-    { loc: "#address1", key: "addressLine1" },
-    { loc: "#Address\\ Line\\ 1", key: "addressLine1" },
-    { loc: "#Address\\ Line\\ 2", key: "addressLine2" },
-    { loc: "#Street\\ Name", key: "streetName" },
-    { loc: "#District", key: "district" },
-    { loc: "#stateAdd", key: "state" },
-    { loc: "#Pincode", key: "pincode" },
-  ]
-  fields.forEach(({ loc, key }) => {
-    const element = document.querySelector<HTMLInputElement | HTMLSelectElement>(loc);
-    if (element == null) return;
-    element.value = vehicle[key];
-    element.dispatchEvent(new Event('change', { bubbles: true }));
-  })
-}
-
 function Actions({ vehicle, setVehicle }: ActionsProps ) {
-  const onCallback = async (type: ActionType) => {
+  type FillType = 'first' | 'second';
+  const onClear = () => {
+    chrome.storage.session.remove("shadow-invoice");
+    setVehicle(undefined);
+  }
+  const onCallback = async (type: FillType) => {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true })
     if (tab.id) {
       await chrome.scripting.executeScript({
         target: { tabId: tab.id },
-        func: type == "shallow" ? handleShallowForm : handleDeepForm,
+        func: type == 'first' ? fillFirstform : fillSecondform,
         args: [vehicle]
       })
     }
   }
   const actions: Array<{ title: string, color: string, callback: () => void }> = [
-    { title: "FORM 1", color: "bg-rose-500", callback: () => {onCallback('shallow')} },
-    { title: "FORM 2", color: "bg-emerald-500", callback: () => {onCallback('deep')} },
-    {
-      title: "CLEAR",
-      color: "bg-slate-500",
-      callback: () => {
-        chrome.storage.session.remove("shadow-invoice");
-        setVehicle(undefined);
-      }
-    },
+    { title: "FORM 1", color: "bg-rose-500", callback: () => {onCallback('first')} },
+    { title: "FORM 2", color: "bg-emerald-500", callback: () => {onCallback('second')} },
+    { title: "CLEAR", color: "bg-slate-500", callback: () => {onClear()} },
   ]
   return (
     <div className="w-full flex justify-center mt-2">
@@ -99,71 +46,29 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [vehicle, setVehicle] = useState<Vehicle | undefined>()
   const [exception, setException] = useState<string | undefined>()
-  const connectToBackend = async () => {
-    try {
-      if (token == null) throw new Error("You don't have a session id!")
-      // Get bundle of invoices.
-      const requestOtf = await fetch("https://api.mahindradealerrise.com/otf/vehicleinvoice/search?searchType=invoiceNumber&searchParam=" + search + "&pageNumber=1&pageSize=10&invoiceStatus=I&sortBy=modelDescription&sortIn=DESC", {
-        headers: {
-          accept: "application/json, text/plain, */*",
-          ...token,
-        }
-      })
-      if (requestOtf.status == 401) {
-        removeToken();
-        throw new Error("Your robin session has been expired!");
-      }
-      const responseOtf = await requestOtf.json()
-      const firstInvoice = responseOtf["data"]["paginationData"][0]
-      const { id: invoiceId, otfNumber } = firstInvoice;
-      // Get full data of the invoice.
-      const request = await fetch(`https://api.mahindradealerrise.com/otf/vehicleinvoice/details?invoiceId=${invoiceId}&otfNumber=${otfNumber}`, {
-        headers: {
-          accept: "application/json, text/plain, */*",
-          ...token,
-        }
-      })
-      const response = await request.json()
-      const customerInfo = response["data"]["invoiceDetails"]["bookingAndBillingCustomerDto"]["bookingCustomer"]
-      const vehicleInfo = response["data"]["vehicleDetails"]
-      const rawAddress = customerInfo["address1"] + customerInfo["address2"] + customerInfo["address3"]
-      const fields: Vehicle = {
-        model: vehicleInfo["model"],
-        invoice: response["data"]["invoiceDetails"]["invoiceNumber"],
-        name: customerInfo["customerName"],
-        streetName: "",
-        addressLine1: "",
-        addressLine2: "",
-        district: customerInfo["district"],
-        state: customerInfo["state"],
-        pincode: customerInfo["pincode"],
-        phoneno: customerInfo["mobileNumber"],
-        email: customerInfo["email"],
-        vinno: vehicleInfo["vinNumber"],
-      }
-      const address = await extractAddress(rawAddress);
-      fields.streetName = address.streetName
-      fields.addressLine1 = address.addressLine1
-      fields.addressLine2 = address.addressLine2
-      chrome.storage.session.set({ "shadow-invoice": JSON.stringify(fields) })
-      setVehicle(fields)
-    } catch (e) {
-      console.log(e);
-      if (e instanceof Error) setException(e.message);
-    } finally {
-      setLoading(false);
-    }
-  }
-  const handleSearch = (e: React.FormEvent): void => {
+  const handleSearch = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
     if (!search.trim()) return;
     setLoading(true);
     setException(undefined);
-    connectToBackend();
+    try {
+      if (!token) throw new Error("You don't have a session id!")
+      const searchconsole = new Searchconsole(token, search);
+      const vehicle = await searchconsole.getVehicledata();
+      setVehicle(vehicle);
+    } catch (e) {
+      if (!(e instanceof Error)) return console.error(e);
+      setException(e.message);
+      if (e.name == "AUTHORIZATION-REVOKED") removeToken();
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
   }
   useEffect(() => {
     chrome.storage.session.get("shadow-invoice").then((response) => {
-      if (response && response["shadow-invoice"]) setVehicle(JSON.parse(response["shadow-invoice"]))
+      if (response && response["shadow-invoice"])
+        setVehicle(JSON.parse(response["shadow-invoice"]))
     })
   }, [])
   return (
@@ -202,9 +107,8 @@ export default function App() {
         </div>
         <Actions vehicle={vehicle} setVehicle={setVehicle}/>
       </div>}
-      {exception && <div className="text-sm mt-3 p-3 flex flex-row text-red-500 font-bold bg-red-100 border-1 rounded-md">
-        <Info className="mr-1 size-4"/>
-        {exception}
+      {exception && <div className="text-sm mt-3 p-3 text-red-500 bg-red-100 border-1 rounded-md">
+        <b className="text-red-400">ERROR :</b> {exception}
       </div>}
     </div>
   )

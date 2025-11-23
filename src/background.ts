@@ -1,5 +1,5 @@
 const onMessage = (message: any) => {
-  if (message.type == 'FIND_TOKENS') {
+  if (message.type == 'ORCHID-AUTHORIZATION') {
     const data: Record<string, string> = {}
     const onBeforeSendHeaders = (details: chrome.webRequest.OnBeforeSendHeadersDetails) => {
       if (!details.requestHeaders) return details;
@@ -11,7 +11,7 @@ const onMessage = (message: any) => {
       }
       chrome.webRequest.onBeforeSendHeaders.removeListener(onBeforeSendHeaders);
       if (Object.keys(data).length == 3) {
-        chrome.storage.session.set({ "robin-authtokens": JSON.stringify(data) })
+        chrome.storage.session.set({ "orchid-authorization": JSON.stringify(data) })
       }
       return details;
     }
