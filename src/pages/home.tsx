@@ -3,7 +3,7 @@ import { Logo } from "@/components";
 import { useEffect, useState } from "react";
 import { Loader, Search } from "lucide-react";
 import { Searchconsole } from "@/utils/search";
-import { fillFirstform, fillSecondform } from '@/utils/actions';
+import { fillFirstform, fillSecondform, sendPdfDocument } from '@/utils/actions';
 
 import type { Vehicle } from '@/types';
 
@@ -28,6 +28,7 @@ function Actions({ vehicle, setVehicle }: ActionsProps ) {
   const actions: Array<{ title: string, color: string, callback: () => void }> = [
     { title: "FORM 1", color: "bg-rose-500", callback: () => {onCallback('first')} },
     { title: "FORM 2", color: "bg-emerald-500", callback: () => {onCallback('second')} },
+    { title: "PRINT", color: "bg-indigo-500", callback: () => {sendPdfDocument(vehicle)} },
     { title: "CLEAR", color: "bg-slate-500", callback: () => {onClear()} },
   ]
   return (

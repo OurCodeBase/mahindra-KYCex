@@ -1,4 +1,5 @@
 import type { Vehicle } from '@/types';
+import { PDFLib } from './pdflib';
 
 export function fillFirstform(vehicle: Vehicle) {
   const fields: Array<{ loc: string, key?: keyof Vehicle }> = [
@@ -36,4 +37,10 @@ export function fillSecondform(vehicle: Vehicle) {
     element.value = vehicle[key];
     element.dispatchEvent(new Event('change', { bubbles: true }));
   })
+}
+
+export async function sendPdfDocument(vehicle: Vehicle) {
+  const pdflib = new PDFLib(vehicle);
+  await pdflib.initialise()
+  await pdflib.createPdf()
 }
