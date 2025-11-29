@@ -53,6 +53,7 @@ export class Searchconsole {
       email: customerInfo["email"],
       vinno: vehicleInfo["vinNumber"],
     }
+    fields.model = fields.model.split(' ').slice(0, 2).join(' ');
     return fields;
   }
 }

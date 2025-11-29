@@ -56,6 +56,7 @@ export default function App() {
       if (!token) throw new Error("You don't have a session id!")
       const searchconsole = new Searchconsole(token, search);
       const vehicle = await searchconsole.getVehicledata();
+      chrome.storage.session.set({ "shadow-invoice": JSON.stringify(vehicle) });
       setVehicle(vehicle);
     } catch (e) {
       if (!(e instanceof Error)) return console.error(e);
@@ -108,8 +109,8 @@ export default function App() {
         </div>
         <Actions vehicle={vehicle} setVehicle={setVehicle}/>
       </div>}
-      {exception && <div className="text-sm mt-3 p-3 text-red-500 bg-red-100 border-1 rounded-md">
-        <b className="text-red-400">ERROR :</b> {exception}
+      {exception && <div className="text-sm font-bold mt-3 p-3 text-red-500 bg-red-100 border-1 rounded-md">
+        {exception}
       </div>}
     </div>
   )

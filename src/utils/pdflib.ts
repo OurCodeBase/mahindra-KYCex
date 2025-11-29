@@ -39,7 +39,7 @@ export class PDFLib {
   public async initialise() {
     const request = await fetch("/document.pdf");
     const response = await request.arrayBuffer();
-    const fonts = ['QEBradenHill', 'QEDavidReid', 'QECarolineMutiboko', 'QEHerbertCooper'];
+    const fonts = ['QEDavidReid', 'QECarolineMutiboko', 'QEHerbertCooper'];
     const signatures = ['AngeliaBirthday', 'AsemKandis', 'HealingFairySignature', 'WestburySignature'];
     const pdfDocument = await PDFDocument.load(response);
     pdfDocument.registerFontkit(fontkit);
@@ -80,8 +80,12 @@ export class PDFLib {
       { key: 'vinno', x: 267, y: 411 },
       { key: 'name', x: 246, y: 159 },
     ]
+    const sizes: Record<string, number> = {
+      'QEDavidReid': 13,
+      'QEHerbertCooper': 14
+    }
     fields.forEach(({ key, x, y }) => {
-      this.setText(this.vehicle[key], this.font, x, y)
+      this.setText(this.vehicle[key], this.font, x, y, sizes[this.fontName])
     })
   }
   private fillContactInfo() {
@@ -90,8 +94,7 @@ export class PDFLib {
       { key: 'phoneno', x: 264, y: 485 }
     ]
     const sizes: Record<string, number> = {
-      'QEBradenHill': 13,
-      'QEHerbertCooper': 17
+      'QEBradenHill': 13
     }
     fields.forEach(({ key, x, y }) => {
       const s = this.vehicle[key];
@@ -102,14 +105,17 @@ export class PDFLib {
   private fillSignatureInfo() {
     const name: string = this.vehicle.name;
     const nameBuffer = name.split(' ');
-    const edge = nameBuffer.slice(0, nameBuffer.length - 1).join(' ');
+    const firstName = nameBuffer.slice(0, nameBuffer.length - 1).join(' ');
     const visibilites: Record<string, number> = {
       'AsemKandis': 0.75,
     }
-    this.pdfPage.drawText(edge, {
+    const sizes: Record<string, number> = {
+      'HealingFairySignature': 15
+    }
+    this.pdfPage.drawText(firstName, {
       x: 80,
       y: 75,
-      size: 30,
+      size: sizes[this.signatureName] || 30,
       font: this.signature,
       rotate: degrees(20),
       opacity: visibilites[this.signatureName] || 1,
@@ -129,7 +135,7 @@ export class PDFLib {
     URL.revokeObjectURL(url);
   }
   private async getPdfScreenshot(pdfBuffer: Uint8Array) {
-    const pdfDocument = await pdfjsLib.getDocument({ data: pdfBuffer }).promise;
+    const pdfDocument = await pdfjsLib.getDocument({ data: pdfBuffer, verbosity: 0 }).promise;
     const page = await pdfDocument.getPage(1);
     const viewport = page.getViewport({ scale: 2.5 });
     const canvas = document.createElement('canvas');
