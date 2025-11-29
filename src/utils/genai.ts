@@ -41,7 +41,7 @@ type Address = {
   addressLine2: string
 }
 
-export async function extractAddress(address: string): Promise<Address> {
+export async function classify(address: string): Promise<Address> {
   const response = await genAI.models.generateContent({
     model: "gemini-2.5-flash",
     contents: prompt + address
