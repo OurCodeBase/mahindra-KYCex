@@ -2,7 +2,7 @@ import type { Vehicle } from '@/types';
 import type { Token } from '@/hooks/token';
 import { extractAddress } from '@/utils/genai';
 
-export class Searchconsole {
+export class SearchConsole {
   token: Token;
   invoiceno: string;
   constructor(token: Token, invoiceno: string) {
