@@ -24,7 +24,7 @@ export class SearchConsole {
         ...this.token,
       }
     })
-    const error = new Error("Oops! You have to login into robin portal again.");
+    const error = new Error("Your session id has been expired.");
     error.name = "AUTHORIZATION-REVOKED";
     if (request.status == 401) throw error;
     const response = await request.json()

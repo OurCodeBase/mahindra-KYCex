@@ -54,7 +54,7 @@ export default function App() {
     setLoading(true);
     setNotification(undefined);
     try {
-      if (!token) throw new Error("You don't have a session id!")
+      if (!token) throw new Error("You need a session id first.")
       const searchConsole = new SearchConsole(token, search);
       const vehicle = await searchConsole.getVehicledata();
       chrome.storage.session.set({ "shadow-invoice": JSON.stringify(vehicle) });

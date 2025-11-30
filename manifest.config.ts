@@ -4,7 +4,7 @@ export default defineManifest({
   manifest_version: 3,
   name: "mahindra-orchid",
   description: "AI POWERED chromium extension for mahindra KYC automation.",
-  version: "1.5",
+  version: "1.6",
   icons: {
     16: "icon.png",
     32: "icon.png",
