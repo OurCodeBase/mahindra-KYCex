@@ -22,6 +22,7 @@ export function fillFirstform(vehicle: Vehicle) {
 
 export function fillSecondform(vehicle: Vehicle) {
   const fields: Array<{ loc: string, key: keyof Vehicle }> = [
+    { loc: "#Name", key: "name" },
     { loc: "#Prefered\\ Mobile\\ Number", key: "phoneno" },
     { loc: "#address1", key: "addressLine1" },
     { loc: "#Address\\ Line\\ 1", key: "addressLine1" },

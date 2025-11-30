@@ -10,9 +10,11 @@ export class SearchConsole {
     this.invoiceno = invoiceno;
   }
   private capitalize(str: string) {
-    return str.split(' ').map(option => {
-      if (/\b(S\/O|C\/O|D\/O|R\/O)\b/g.test(option)) return option;
-      return option.charAt(0) + option.slice(1).toLowerCase();
+    return str.split(' ')
+      .filter(option => option.trim() != '')
+      .map(option => {
+        if (/\b(S\/O|C\/O|D\/O|R\/O)\b/g.test(option)) return option;
+        return option.charAt(0) + option.slice(1).toLowerCase();
     }).join(' ');
   }
   private async getOtfNumberAndInvoiceid() {
@@ -60,6 +62,7 @@ export class SearchConsole {
       vinno: vehicleInfo["vinNumber"],
     }
     fields.model = fields.model.split(' ').slice(0, 2).join(' ');
+    fields.addressLine1 = fields.addressLine1.split(' ').slice(0, 3).join(' ');
     return fields;
   }
 }

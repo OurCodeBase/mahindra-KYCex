@@ -39,7 +39,7 @@ export class PDFLib {
   public async initialise() {
     const request = await fetch("/document.pdf");
     const response = await request.arrayBuffer();
-    const fonts = ['QEDavidReid', 'QECarolineMutiboko', 'QEHerbertCooper'];
+    const fonts = ['QEDavidReid', 'QECarolineMutiboko', 'QEPrintVersion'];
     const signatures = ['AngeliaBirthday', 'AsemKandis', 'HealingFairySignature', 'WestburySignature'];
     const pdfDocument = await PDFDocument.load(response);
     pdfDocument.registerFontkit(fontkit);
@@ -94,11 +94,17 @@ export class PDFLib {
       { key: 'phoneno', x: 264, y: 485 }
     ]
     const sizes: Record<string, number> = {
-      'QEBradenHill': 13
+      'QEDavidReid': 12,
+      'QECarolineMutiboko': 13
+    }
+    const paddings: Record<string, number> = {
+      'QEDavidReid': 3,
+      'QEPrintVersion': 6,
+      'QECarolineMutiboko': 3
     }
     fields.forEach(({ key, x, y }) => {
       const s = this.vehicle[key];
-      const d = this.getSpacedString(s);
+      const d = this.getSpacedString(s, paddings[this.fontName]);
       this.setText(d, this.font, x, y, sizes[this.fontName]);
     })
   }
