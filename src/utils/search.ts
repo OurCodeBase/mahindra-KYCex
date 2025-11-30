@@ -11,7 +11,7 @@ export class SearchConsole {
   }
   private capitalize(str: string) {
     return str.split(' ').map(option => {
-      if (option.startsWith('S/O') || option.startsWith('R/O')) return option;
+      if (/\b(S\/O|C\/O|D\/O|R\/O)\b/g.test(option)) return option;
       return option.charAt(0) + option.slice(1).toLowerCase();
     }).join(' ');
   }
