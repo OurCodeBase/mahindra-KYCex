@@ -2,8 +2,8 @@ import { useToken } from "@/hooks";
 import { Logo } from "@/components";
 import { useEffect, useState } from "react";
 import { Loader, Search } from "lucide-react";
-import { Searchconsole } from "@/utils/search";
-import { fillFirstform, fillSecondform } from '@/utils/actions';
+import { SearchConsole } from "@/utils/search";
+import { fillFirstform, fillSecondform, sendPdfDocument } from '@/utils/actions';
 
 import type { Vehicle } from '@/types';
 
@@ -28,6 +28,7 @@ function Actions({ vehicle, setVehicle }: ActionsProps ) {
   const actions: Array<{ title: string, color: string, callback: () => void }> = [
     { title: "FORM 1", color: "bg-rose-500", callback: () => {onCallback('first')} },
     { title: "FORM 2", color: "bg-emerald-500", callback: () => {onCallback('second')} },
+    { title: "PRINT", color: "bg-indigo-500", callback: () => {sendPdfDocument(vehicle)} },
     { title: "CLEAR", color: "bg-slate-500", callback: () => {onClear()} },
   ]
   return (
@@ -42,23 +43,25 @@ function Actions({ vehicle, setVehicle }: ActionsProps ) {
 
 export default function App() {
   const { token, removeToken } = useToken()
-  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [vehicle, setVehicle] = useState<Vehicle | undefined>()
-  const [exception, setException] = useState<string | undefined>()
-  const handleSearch = async (e: React.FormEvent): Promise<void> => {
+  const [notification, setNotification] = useState<string | undefined>()
+  const handleSearch = async (e: React.FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const search = formData.get('invoiceno')?.toString().toUpperCase() || "";
     if (!search.trim()) return;
     setLoading(true);
-    setException(undefined);
+    setNotification(undefined);
     try {
       if (!token) throw new Error("You don't have a session id!")
-      const searchconsole = new Searchconsole(token, search);
-      const vehicle = await searchconsole.getVehicledata();
+      const searchConsole = new SearchConsole(token, search);
+      const vehicle = await searchConsole.getVehicledata();
+      chrome.storage.session.set({ "shadow-invoice": JSON.stringify(vehicle) });
       setVehicle(vehicle);
     } catch (e) {
       if (!(e instanceof Error)) return console.error(e);
-      setException(e.message);
+      setNotification(e.message);
       if (e.name == "AUTHORIZATION-REVOKED") removeToken();
       console.error(e);
     } finally {
@@ -71,20 +74,18 @@ export default function App() {
         setVehicle(JSON.parse(response["shadow-invoice"]))
     })
   }, [])
-  return (
+  return <>
     <div className="shadow-xl p-4 max-w-md">
       <Logo/>
       <form onSubmit={handleSearch} className={`flex flex-row w-full justify-center ${vehicle || "pb-28"}`}>
         <input
           type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value.toUpperCase())}
+          name="invoiceno"
           placeholder="Feed me a invoice no."
           className="px-4 bg-green-50 text-green-600 placeholder-stone-400 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-green-500 focus:ring-2 focus:ring-green-200 transition-all cursor-pointer"
         />
         <button
           type="submit"
-          disabled={loading || !search.trim()}
           className="bg-lime-600 ml-2 p-3 hover:bg-lime-700 text-lime-100 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? <Loader className="animate-spin"/> : <Search/>}
@@ -107,9 +108,11 @@ export default function App() {
         </div>
         <Actions vehicle={vehicle} setVehicle={setVehicle}/>
       </div>}
-      {exception && <div className="text-sm mt-3 p-3 text-red-500 bg-red-100 border-1 rounded-md">
-        <b className="text-red-400">ERROR :</b> {exception}
-      </div>}
     </div>
-  )
+    {notification ? <div className="w-full fixed top-0 flex justify-center">
+      <p className="bg-orange-300 text-orange-800 border-3 border-orange-400 px-2 py-0 text-sm font-bold font-mono">
+        {notification}
+      </p>
+    </div> : ''}
+  </>
 }
