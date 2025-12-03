@@ -33,10 +33,12 @@ function Actions({ vehicle, setVehicle }: ActionsProps ) {
   ]
   return (
     <div className="w-full flex justify-center mt-2">
-      {actions.map(option => <button onClick={option.callback} key={option.title}
-        className={`py-2 shadow-lg ${option.color} opacity-70 cursor-pointer text-green-100 font-mono mr-2 px-2 h-min text-nowrap`}>
-        {option.title}
-      </button>)}
+      <div className="border-1 border-white rounded-md shadow-sm shadow-black backdrop-brightness-60 backdrop-contrast-125">
+        {actions.map((option, index) => <button type="button" onClick={option.callback} key={option.title}
+          className={`${index + 1 != actions.length && 'border-r-1 border-white '}py-2 shadow-lg cursor-pointer text-white w-20 h-min text-nowrap font-mono`}>
+          {option.title}
+        </button>)}
+      </div>
     </div>
   )
 }
@@ -75,9 +77,9 @@ export default function App() {
     })
   }, [])
   return <>
-    <div className="shadow-xl p-4 max-w-md">
+    <div className="shadow-xl max-w-md bg-gradient-to-br from-background to-transparent to-40%">
       <Logo/>
-      <form onSubmit={handleSearch} className={`flex flex-row w-full justify-center ${vehicle || "pb-28"}`}>
+      <form onSubmit={handleSearch} className={`flex flex-row w-full justify-center ${vehicle || "pb-28"} pt-10`}>
         <input
           type="text"
           name="invoiceno"
@@ -91,7 +93,7 @@ export default function App() {
           {loading ? <Loader className="animate-spin"/> : <Search/>}
         </button>
       </form>
-      {vehicle && <div className="mt-2">
+      {vehicle && <div className="mt-2 px-4 pb-4">
         <div className="backdrop-brightness-60 backdrop-contrast-125 font-mono border-1 border-stone-400 rounded-md p-2">
           <table className="text-lime-50">
             <tbody>

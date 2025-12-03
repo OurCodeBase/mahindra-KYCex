@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+@theme {
+  --color-background: #274032;
+}
+
 .banner {
   background-image: url('/banner.jpg');
   background-size: cover; /* Stretches the image to cover the entire element */
